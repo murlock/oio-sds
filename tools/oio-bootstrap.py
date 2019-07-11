@@ -722,6 +722,17 @@ score_timeout=120
 lock_at_first_register=false
 """
 
+template_service_hdf_types = """
+
+[type:hdfsn]
+score_expr=(num stat.cpu)
+score_timeout=120
+
+[type:hdfdn]
+score_expr=(num stat.cpu)
+score_timeout=120
+"""
+
 template_gridinit_header = """
 [Default]
 listen=${RUNDIR}/gridinit.sock
@@ -1501,6 +1512,9 @@ def generate(options):
         with open('{CFGDIR}/{NS}-service-types.conf'.format(**ENV), 'w+') as f:
             tpl = Template(template_service_types)
             f.write(tpl.safe_substitute(ENV))
+            if options['hdf_services']:
+                tpl = Template(template_service_hdf_types)
+                f.write(tpl.safe_substitute(ENV))
         # Prepare a list of consciences
         for num in range(nb_conscience):
             h = hosts[num % len(hosts)]
