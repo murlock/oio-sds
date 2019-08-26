@@ -66,6 +66,26 @@ function register_gridinit() {
     local port=$3
     local script=$4
 
+    # Add script to wrap stdout > syslog
+    cat <<EOF > $INSTALL/bin/hsds-startup
+#!/bin/bash
+
+function trap_exit() {
+    local PIDS=\$(jobs -p)
+    for pid in \$PIDS; do
+        kill \$pid
+        wait \$pid
+    done
+}
+
+trap trap_exit EXIT
+
+RUN=\$1
+PREFIX=OIO,OPENIO,\$2,\$3
+
+$INSTALL/bin/python -u \$RUN | logger -t \$PREFIX
+EOF
+
     cat <<EOF >> $HOME/.oio/sds/conf/gridinit.conf
 
 [service.HSDS-$type-$port]
@@ -87,7 +107,7 @@ on_die=cry
 enabled=true
 start_at_boot=false
 env.PYTHONPATH=$INSTALL_LIB/site-packages
-command=$INSTALL/bin/python $INSTALL_LIB/hsds/$script
+command=$INSTALL/bin/hsds-startup $INSTALL_LIB/hsds/$script $type $port
 EOF
 }
 
