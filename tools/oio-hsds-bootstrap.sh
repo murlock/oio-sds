@@ -127,3 +127,13 @@ register_dn 127.0.0.1 9002
 
 register_sn 127.0.0.1 9101
 register_sn 127.0.0.1 9102
+
+cat <<EOF
+- Run oioswift, listening on http://127.0.0.1:5000
+- Unlock hsds services with openio cluster
+- Create bucket hsds
+- Run hsds virtualenv
+    - Launch hsconfigure: Server endpoint is a Service Note (API Key and authentication are not used)
+    - Run hstouch /home/
+    - Run hsinfo: no errors should be shown
+EOF
