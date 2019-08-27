@@ -103,6 +103,7 @@ env.HOST_IP=$ip
 env.OIO_PROXY=http://127.0.0.1:6000
 env.HSDS_ENDPOINT=http://hsds
 env.PUBLIC_DNS=hsds.localhost
+env.PASSWORD_FILE=
 on_die=cry
 enabled=true
 start_at_boot=false
