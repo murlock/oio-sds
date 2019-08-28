@@ -85,6 +85,7 @@ PREFIX=OIO,OPENIO,\$2,\$3
 
 $INSTALL/bin/python -u \$RUN | logger -t \$PREFIX
 EOF
+    chmod +x $INSTALL/bin/hsds-startup
 
     cat <<EOF >> $HOME/.oio/sds/conf/gridinit.conf
 
