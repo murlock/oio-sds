@@ -48,7 +48,7 @@ function create_venv() {
     . ${INSTALL}/bin//activate
     pip install -U pip wheel setuptools
 
-    pip install pytz numba numpy aiobotocore h5py psutil
+    pip install pytz numba numpy aiobotocore h5py psutil kubernetes
 
     pip install git+https://github.com/HDFGroup/h5pyd.git
 
