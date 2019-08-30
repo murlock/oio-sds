@@ -26,8 +26,40 @@
 # - oioswift with swift3 enabled on 127.0.0.1:5000
 # - a bucket hsds
 
-INSTALL=${1:-$HOME/hsds}
+
+if [ "${1}" = "-g" ]; then
+	# use deployement path
+	LOCAL=0
+	shift 1
+	ADDR=$1
+	if [ "$ADDR" = "" ]; then
+		echo "Missing bindind address"
+		exit 1
+	fi
+	# Assume local GW is here
+	GW=$ADDR:6007
+	ACCESS_KEY=$2
+	SECRET_ACCESS=$3
+	PROXY=$(cat /etc/oio/sds.conf.d/OPENIO  | grep "proxy" | cut -d= -f2)
+	CONSCIENCE=$(cat /etc/oio/sds.conf.d/OPENIO  | grep "conscience" | cut -d= -f2)
+	GRIDINIT=/etc/gridinit.d/OPENIO-hsds.conf
+else
+	# use dev path
+	LOCAL=1
+	ADDR=127.0.0.1
+	GW=127.0.0.1:5000
+	ACCESS_KEY=demo:demo
+	SECRET_ACCESS=DEMO_PASS
+	PROXY=$ADDR:6000
+	GRIDINIT=$HOME/.oio/sds/conf/gridinit.conf
+fi
+
+
+INSTALL=$HOME/hsds
 INSTALL_LIB=
+
+# usage:
+# oio-hsds-bootstrap.sh [-g]
 
 function create_venv() {
     local found=
@@ -87,21 +119,21 @@ $INSTALL/bin/python -u \$RUN | logger -t \$PREFIX
 EOF
     chmod +x $INSTALL/bin/hsds-startup
 
-    cat <<EOF >> $HOME/.oio/sds/conf/gridinit.conf
+    cat <<EOF >> $GRIDINIT
 
 [service.HSDS-$type-$port]
 group=HSDS,localhost,hsds,hsds-$type
 env.NODE_TYPE=$type
 env.${TYPE}_PORT=$port
 env.${TYPE}_HOST=$ip
-env.AWS_S3_GATEWAY=http://127.0.0.1:5000
-env.AWS_SECRET_ACCESS_KEY=DEMO_PASS
-env.AWS_ACCESS_KEY_ID=demo:demo
+env.AWS_S3_GATEWAY=http://${GW}
+env.AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS
+env.AWS_ACCESS_KEY_ID=$ACCESS_KEY
 env.AWS_REGION=us-east-1
 env.BUCKET_NAME=hsds
 env.LOG_LEVEL=debug
 env.HOST_IP=$ip
-env.OIO_PROXY=http://127.0.0.1:6000
+env.OIO_PROXY=http://${PROXY}
 env.HSDS_ENDPOINT=http://hsds
 env.PUBLIC_DNS=hsds.localhost
 env.PASSWORD_FILE=
@@ -125,11 +157,11 @@ function register_sn() {
 
 create_venv
 
-register_dn 127.0.0.1 9001
-register_dn 127.0.0.1 9002
+register_dn $ADDR 9001
+register_dn $ADDR 9002
 
-register_sn 127.0.0.1 9101
-register_sn 127.0.0.1 9102
+register_sn $ADDR 9101
+register_sn $ADDR 9102
 
 cat <<EOF
 - Run oioswift, listening on http://127.0.0.1:5000
