@@ -26,6 +26,14 @@
 # - oioswift with swift3 enabled on 127.0.0.1:5000
 # - a bucket hsds
 
+# To install python36 on Centos:
+# - yum install yum-utils
+# - yum groupinstall development
+# - yum install https://centos7.iuscommunity.org/ius-release.rpm
+# - yum install python36u python36u-pip python36u-devel
+
+
+
 
 if [ "${1}" = "-g" ]; then
 	# use deployement path
@@ -43,6 +51,10 @@ if [ "${1}" = "-g" ]; then
 	PROXY=$(cat /etc/oio/sds.conf.d/OPENIO  | grep "proxy" | cut -d= -f2)
 	CONSCIENCE=$(cat /etc/oio/sds.conf.d/OPENIO  | grep "conscience" | cut -d= -f2)
 	GRIDINIT=/etc/gridinit.d/OPENIO-hsds.conf
+	MIN_CHUNK_SIZE=16m
+	MAX_CHUNK_SIZE=64m
+	CHUNK_MEM_CACHE_SIZE=512m
+	MAX_CHUNKS_PER_FOLDER=100000
 else
 	# use dev path
 	LOCAL=1
@@ -52,6 +64,10 @@ else
 	SECRET_ACCESS=DEMO_PASS
 	PROXY=$ADDR:6000
 	GRIDINIT=$HOME/.oio/sds/conf/gridinit.conf
+	MIN_CHUNK_SIZE=8m
+	MAX_CHUNK_SIZE=16m
+	CHUNK_MEM_CACHE_SIZE=512m
+	MAX_CHUNKS_PER_FOLDER=1000
 fi
 
 
@@ -86,7 +102,8 @@ function create_venv() {
 
     # there is no setup.py available
     # pip install git+https://github.com/HDFGroup/hsds.git@openio
-    pip install git+https://github.com/murlock/hsds.git@M-openio-fixes
+    pip install git+https://github.com/murlock/hsds.git@openio
+    #pip install git+https://github.com/murlock/hsds.git@M-openio-fixes
 
     INSTALL_LIB=$INSTALL/lib/$found/site-packages/
 }
@@ -137,8 +154,10 @@ env.OIO_PROXY=http://${PROXY}
 env.HSDS_ENDPOINT=http://hsds
 env.PUBLIC_DNS=hsds.localhost
 env.PASSWORD_FILE=
-env.MIN_CHUNK_SIZE=16m
-env.MAX_CHUNK_SIZE=64m
+env.MIN_CHUNK_SIZE=${MIN_CHUNK_SIZE}
+env.MAX_CHUNK_SIZE=${MAX_CHUNK_SIZE}
+env.CHUNK_MEM_CACHE_SIZE=${CHUNK_MEM_CACHE_SIZE}
+env.MAX_CHUNKS_PER_FOLDER=${MAX_CHUNKS_PER_FOLDER}
 on_die=cry
 enabled=true
 start_at_boot=false
@@ -159,9 +178,12 @@ create_venv
 
 register_dn $ADDR 9001
 register_dn $ADDR 9002
+register_dn $ADDR 9003
+register_dn $ADDR 9004
+register_dn $ADDR 9005
+register_dn $ADDR 9006
 
 register_sn $ADDR 9101
-register_sn $ADDR 9102
 
 cat <<EOF
 - Run oioswift, listening on http://127.0.0.1:5000
