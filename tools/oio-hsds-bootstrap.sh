@@ -55,6 +55,8 @@ if [ "${1}" = "-g" ]; then
 	MAX_CHUNK_SIZE=64m
 	CHUNK_MEM_CACHE_SIZE=512m
 	MAX_CHUNKS_PER_FOLDER=100000
+	USER="uid=openio"
+	GROUP="gid=openio"
 else
 	# use dev path
 	LOCAL=1
@@ -68,6 +70,8 @@ else
 	MAX_CHUNK_SIZE=16m
 	CHUNK_MEM_CACHE_SIZE=512m
 	MAX_CHUNKS_PER_FOLDER=1000
+	USER=
+	GROUP=
 fi
 
 
@@ -148,7 +152,7 @@ env.AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS
 env.AWS_ACCESS_KEY_ID=$ACCESS_KEY
 env.AWS_REGION=us-east-1
 env.BUCKET_NAME=hsds
-env.LOG_LEVEL=debug
+env.LOG_LEVEL=info
 env.HOST_IP=$ip
 env.OIO_PROXY=http://${PROXY}
 env.HSDS_ENDPOINT=http://hsds
@@ -162,6 +166,8 @@ on_die=cry
 enabled=true
 start_at_boot=false
 env.PYTHONPATH=$INSTALL_LIB/site-packages
+${USER}
+${GROUP}
 command=$INSTALL/bin/hsds-startup $INSTALL_LIB/hsds/$script $type $port
 EOF
 }
