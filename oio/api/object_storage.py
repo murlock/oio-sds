@@ -14,7 +14,7 @@
 # License along with this library.
 
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from six import PY2, string_types
 from six.moves.urllib_parse import unquote
 
@@ -1165,6 +1165,31 @@ class ObjectStorageApi(object):
         kwargs['logger'] = self.logger
         if perfdata is not None:
             download_start = monotonic_time()
+
+        force_optimize = kwargs.get('force_optimize', False)
+        if force_optimize:
+            # only keep k parts to avoid rebuild
+            # it assumes that all k parts are avaible !
+            _chunks = {}
+            for idx, _meta in chunks.iteritems():
+                data = [c for c in _meta
+                        if c['num'] < storage_method.ec_nb_data]
+
+                # parity = [c for c in meta
+                #           if c['num'] >= storage_method.ec_nb_data]
+                # parity.sort(key=lambda o: o['num'])
+
+                # poor security: if a k part is not available
+                # keep all chunks for the current meta-chunk
+                if len(data) == storage_method.ec_nb_data:
+                    _chunks[idx] = data
+                else:
+                    _chunks[idx] = meta
+
+            chunks = _chunks
+            # for idx, meta in chunks.iteritems():
+            #     print("idx: ", " ".join(x['pos'] for x in meta))
+
         if storage_method.ec:
             stream = fetch_stream_ec(chunks, ranges, storage_method, **kwargs)
         elif storage_method.backblaze:
