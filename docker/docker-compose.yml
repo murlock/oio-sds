@@ -1,0 +1,29 @@
+---
+version: '2.4'
+services:
+  redis:
+    image: latest
+    networks:
+      default:
+        ipv4_address: 172.32.0.100
+  zookeeper:
+    image: zookeeper
+    networks:
+      default:
+        ipv4_address: 172.32.0.200
+  sds:
+    image: oio-build
+    depends_on:
+      - redis
+      - zookeeper
+    networks:
+      default:
+        ipv4_address: 172.24.0.100
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.32.0.0/16
