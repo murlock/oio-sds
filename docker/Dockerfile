@@ -55,3 +55,21 @@ RUN export LD_LIBRARY_PATH=/usr/local/lib64  && \
 
 ####
 # => beanstalkd is required for ?
+
+###
+#FROM ubuntu:18.04 AS buildcommon
+#[...]
+#VOLUME /reports
+#
+#FROM buildcommon AS build-py2
+#[...] for python2
+#
+#FROM buildcommon AS build-py36
+#[...] for python3.6
+
+# should only for manual test: call docker build --target=build-py36
+
+
+# PYTHON_VERSION=2.7 docker-compose build (for unit test)
+# PYTHON_VERSION=2.7 docker-compose up --exit-from=sds (to stop docker compose if sds stops)
+# docker cp <container-id>/../reports . to bypass unix rights issues

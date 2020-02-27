@@ -2,20 +2,37 @@
 version: '2.4'
 services:
   redis:
-    image: latest
+    image: redis
+    healthcheck:
+      # https://docs.docker.com/compose/compose-file/compose-file-v2/#healthcheck
+      test: "redis-cli info"
     networks:
       default:
         ipv4_address: 172.32.0.100
   zookeeper:
     image: zookeeper
+    healthcheck:
+      test: "echo srvr | nc 127.0.0.1 2181"
     networks:
       default:
         ipv4_address: 172.32.0.200
   sds:
-    image: oio-build
+    build:
+      context: ../
+      # target: ${PYTHON_VERSION}   # build-py2 for example
+      dockerfile: docker/Dockerfile
+    environment:
+        # to be updated
+        ZK: 172.32.0.200:2181
+    entrypoint:
+      - bash
+      - /oio/run-test.sh # this should launch oio-reset and test suite
+      - ${TEST_SUITE}
     depends_on:
-      - redis
-      - zookeeper
+      redis:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
     networks:
       default:
         ipv4_address: 172.24.0.100
