@@ -924,7 +924,7 @@ syslog_prefix = OIO,${NS},${SRVTYPE},${SRVNUM}
 #sentinel_hosts = 127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381
 sentinel_master_name = oio
 
-redis_host = ${IP}
+redis_host = ${REDIS_HOST}
 """
 
 template_rdir = """
@@ -952,7 +952,7 @@ log_facility = LOG_LOCAL0
 log_level = INFO
 log_address = /dev/log
 syslog_prefix = OIO,${NS},admin,${SRVNUM}
-redis_host = ${IP}
+redis_host = ${REDIS_HOST}
 """
 
 template_gridinit_webhook_server = """
@@ -987,6 +987,7 @@ SVC_HOSTS = 'hosts'
 SVC_NB = 'count'
 SVC_PARAMS = 'params'
 ALLOW_REDIS = 'redis'
+REDIS_HOST = 'redis_host'
 OPENSUSE = 'opensuse'
 ZOOKEEPER = 'zookeeper'
 GO_RAWX = 'go_rawx'
@@ -1105,6 +1106,7 @@ def generate(options):
 
     # `options` already holds the YAML values overriden by the CLI values
     hosts = options.get(SVC_HOSTS) or defaults[SVC_HOSTS]
+    redis_host = options.get(REDIS_HOST) or hosts[0]
 
     ns = options.get('ns') or defaults['NS']
     backblaze_account_id = options.get('backblaze', {}).get(ACCOUNT_ID)
@@ -1160,7 +1162,8 @@ def generate(options):
                            else '',
                WANT_SERVICE_ID=want_service_id,
                WEBHOOK=WEBHOOK,
-               WEBHOOK_ENDPOINT=WEBHOOK_ENDPOINT)
+               WEBHOOK_ENDPOINT=WEBHOOK_ENDPOINT,
+               REDIS_HOST=redis_host)
 
     def merge_env(add):
         env = dict(ENV)
