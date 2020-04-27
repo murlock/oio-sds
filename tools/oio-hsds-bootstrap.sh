@@ -83,7 +83,7 @@ INSTALL_LIB=
 
 function create_venv() {
     local found=
-    for exe in python3.6 python3.7; do
+    for exe in python3.6 python3.7 python3.8; do
         which $exe || continue
         ok=$(${exe} -c 'import sys; print(sys.version > "3.6")')
         if [ "$ok" == "True" ]; then
